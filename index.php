@@ -1,6 +1,42 @@
 <?php
+$path= './' . $_GET['path'];
+if (isset($_POST['delete'])){
+    $filePath = $_POST['delete'];
+unlink(($filePath));
+}
+
+if (isset($_GET['action']) and $_GET['action'] == 'logout') {
+    // session_start();
+    unset($_SESSION['username']);
+    unset($_SESSION['password']);
+    unset($_SESSION['logged_in']);
+    print('Logged out!');
+}
 if ($_SESSION['logged_in']){
     header('Location:'.'login.php');
+}
+// upload
+if(isset($_FILES['image'])){
+    $errors= array();
+    $file_name = $_FILES['image']['name'];
+    $file_size = $_FILES['image']['size'];
+    $file_tmp = $_FILES['image']['tmp_name'];
+    $file_type = $_FILES['image']['type'];
+    // check extension (and only permit jpegs, jpgs and pngs)
+    $file_ext = strtolower(end(explode('.',$_FILES['image']['name'])));
+    $extensions = array("jpeg","jpg","png");
+    if(in_array($file_ext,$extensions)=== false){
+        $errors[]="extension not allowed, please choose a JPEG or PNG file.";
+    }
+    if($file_size > 2097152) {
+        $errors[]='File size must be smaller than 2 MB';
+    }
+    if(empty($errors)==true) {
+        move_uploaded_file($file_tmp,'./'.$file_name);
+        echo "Success";
+    }else{
+        print_r($errors);
+    }
 }
 ?>
 
@@ -25,31 +61,33 @@ if ($_SESSION['logged_in']){
             </thead>
             <tbody>
                 <?php 
-                // delete
-               // unlink(('./' . $_GET['path'] . $_GET['fileToDelete']);
-               // org path $path= './' . $_GET['path'];
-             // $path= (substr('./' . $_GET['path'], 0,2))== ".//" ? . $_GET['path'] :'./' . $_GET['path'])  ;
                $path= './' . $_GET['path'];
-              // var_dump($path);
                 $dirContent = scandir($path);
-                
                 foreach($dirContent as $pieceOfContent){
-                  
-
                     print('<tr>');
                     print('<td>' . (is_dir($pieceOfContent) ? "Directory" : "File") . '</td>');
-                    print('<td>' . (is_dir($path . '/' . $pieceOfContent) ? '<a href="?path=' . $path . '/' .$pieceOfContent .'">' . $pieceOfContent . '</a></td>' :  $pieceOfContent));
-                    print('<td>'. (!is_dir($pieceOfContent) ? '<a href="?delete' . $pieceOfContent . '">Delete</a>' : '') .'</td>');
+                    print('<td>' . (is_dir($path . '/' . $pieceOfContent) ? '<a href="?path=' . $path .'/' .$pieceOfContent .'">' . $pieceOfContent . '</a></td>' :  $pieceOfContent));
+                    print('<td>'. (!is_dir($pieceOfContent) ? '<a href="?fileToDelete' .  '">Delete</a>' : '') .'</td>');
                     print('</tr>'); 
-                    //var_dump('<span>'. $path . '</span>');
-                  //  var_dump($path);
-
                 }
                 ?>
-               
             </tbody>
         </table>
     </div>
+     <footer>
+        <form action = "" method = "POST" enctype = "multipart/form-data">
+            <input type = "file" name = "image" />
+            <input type = "submit"/>
+        </form>
+        <ul>
+            <li>Sent file: <?php echo $_FILES['image']['name'];  ?>
+            <li>File size: <?php echo $_FILES['image']['size'];  ?>
+            <li>File type: <?php echo $_FILES['image']['type'] ?>
+        </ul> 
+    <a href="logIn.php">
+        <button>Log out </button>
+    </a>
+     </footer>
     
     
 </body>
